@@ -1,61 +1,101 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Abstractly
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A research radar for tracking AI trends and translating emerging techniques into practical applications. Aggregates newly published scientific research from open-access sources and generates AI-assisted digests with multiple perspectives.
 
-## About Laravel
+> **Status:** Early development (v0.1)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Demo
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+*Coming soon — screenshots and live link to follow.*
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Features
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Current
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Browse and enable/disable research disciplines
+- Configure sources per discipline (arXiv subfields, bioRxiv, medRxiv)
+- Preview raw feed entries from any source
+- Generate AI-summarized digests grouped by discipline and source
+- Three summary perspectives per paper:
+  - **ELI5** — plain-language explanation
+  - **SWE** — solo developer opportunity framing
+  - **Investor** — high-risk opportunity thesis
+- Multi-provider AI support (Gemini, OpenAI, Ollama)
+- Graceful degradation when AI calls fail
 
-## Laravel Sponsors
+### Planned
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- Queue-based digest generation
+- Source result caching
+- Paper deduplication across sources
+- Research radar view with trend tracking
+- Integration with [The Shelf](https://github.com/akuligowski9/the-shelf) for research-to-project pipeline
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Tech Stack
 
-## Contributing
+- **Backend:** Laravel 12 (PHP 8.2+)
+- **Frontend:** Blade templates, Vite
+- **Database:** SQLite (session/cache storage)
+- **AI Providers:** Google Gemini (default), OpenAI, Ollama
+- **Data Sources:** arXiv (Atom), bioRxiv (JSON), medRxiv (JSON)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## Quickstart
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+# Clone
+git clone https://github.com/akuligowski9/abstractly.git
+cd abstractly
 
-## Security Vulnerabilities
+# Install dependencies and set up
+composer setup
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Or manually:
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+npm install
+npm run build
+
+# Start development servers
+composer dev
+```
+
+This runs the Laravel server, queue worker, log tail, and Vite dev server concurrently.
+
+---
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GOOGLE_API_KEY` | Yes (if using Gemini) | Google AI API key for Gemini |
+| `DIGEST_AI_PROVIDER` | No | `gemini` (default), `openai`, or `ollama` |
+| `DIGEST_AI_MODEL` | No | Gemini model (default: `gemini-2.0-flash`) |
+| `OPENAI_API_KEY` | Only if provider is `openai` | OpenAI API key |
+| `DIGEST_AI_MODEL_OPENAI` | No | OpenAI model (default: `gpt-4o-mini`) |
+| `OLLAMA_HOST` | No | Ollama endpoint (default: `http://127.0.0.1:11434`) |
+
+---
+
+## Project Documentation
+
+- [BACKLOG.md](docs/BACKLOG.md) — committed work and priorities
+- [TECH_SPEC.md](docs/TECH_SPEC.md) — architecture, data model, and feature breakdown
+- [PROGRESS.md](docs/PROGRESS.md) — session log and decisions
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT
