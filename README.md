@@ -2,8 +2,6 @@
 
 A research radar for tracking scientific trends and translating emerging techniques into practical applications. Aggregates newly published research from open-access sources across 15 disciplines and generates AI-assisted digests with multiple perspectives.
 
-## Demo
-
 ![Digest example — Mathematics / Number Theory with ELI5, Solo SWE, and Investor summaries](docs/images/digest-example.png)
 
 ---
@@ -39,6 +37,20 @@ A research radar for tracking scientific trends and translating emerging techniq
 - Ranking by novelty or citations
 - Cross-discipline clustering
 - Integration with [The Shelf](https://github.com/akuligowski9/the-shelf) for research-to-project pipeline
+
+---
+
+## Architecture
+
+The digest generation pipeline is a three-pass loop per discipline:
+
+1. **Fetch** — `SourcePreviewer` pulls papers from 5 different API formats (Atom, JSON, JSON:API, REST, RSS) with per-source caching
+2. **Deduplicate** — `PaperDeduplicator` collapses cross-listed papers across sources within each discipline, annotating first occurrences with "Also in" references
+3. **Summarize** — `AiSummarizer` batches papers to the configured AI provider (Gemini/OpenAI/Ollama) with per-paper summary caching
+
+Results stream to the browser progressively via Livewire 3's `$this->stream()` as each discipline completes — no queue infrastructure needed.
+
+**No database by design.** This is a local-only, single-user research tool. File-based sessions, file-based cache, and a flat JSON file for saved papers are sufficient and keep the setup trivial. The deliberate trade: no multi-user support in exchange for zero database configuration and instant portability.
 
 ---
 
