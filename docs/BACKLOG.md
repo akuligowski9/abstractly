@@ -24,28 +24,6 @@ _No items._
 
 ## High
 
-### RDIG-001: Document AI-specific environment variables in .env.example
-
-#### Description
-
-The `.env.example` file is missing all AI-provider-related environment variables (`GOOGLE_API_KEY`, `DIGEST_AI_PROVIDER`, `DIGEST_AI_MODEL`, `OPENAI_API_KEY`, `DIGEST_AI_MODEL_OPENAI`, `OLLAMA_HOST`). Anyone cloning the repository has no visibility into the configuration required for digest generation to function. These variables are referenced in `AiSummarizer` and are essential to the core feature. Adding them with descriptive comments is a quick fix with high documentation value.
-
-#### Acceptance Criteria
-
-- [ ] `.env.example` includes all 6 AI-related env vars with placeholder values
-- [ ] Each variable has an inline comment explaining its purpose and default
-- [ ] `DIGEST_AI_PROVIDER` comment lists valid options (`gemini`, `openai`, `ollama`)
-
-#### Metadata
-
-- **Status:** Planned
-- **Priority:** High
-- **Type:** Maintenance
-- **Assignee:** Unassigned
-- **GitHub Issue:** No
-
----
-
 ### RDIG-002: Cache source fetch results
 
 #### Description
@@ -146,19 +124,13 @@ The two core services — `SourcePreviewer` (feed fetching and parsing) and `AiS
 
 #### Description
 
-Discipline and source selections are currently stored in the session only, which has a 120-minute default lifetime. Returning users must re-select their preferences every time the session expires. A simple persistence layer (e.g., a `user_preferences` table or key-value store) would allow selections to survive across sessions. This is a prerequisite for any future multi-user or authentication features.
+Discipline and source selections are currently stored in the session only, which has a 120-minute default lifetime. Returning users must re-select their preferences every time the session expires. A simple persistence layer (e.g., a `user_preferences` table or key-value store) would allow selections to survive across sessions.
 
-#### Acceptance Criteria
-
-- [ ] User discipline and source selections are persisted to the database
-- [ ] Selections survive session expiry and are restored on next visit
-- [ ] Migration creates the necessary table(s)
-- [ ] Livewire components read from persistent storage with session as a write-through cache
-- [ ] Existing Dusk tests still pass
+**Archived:** Database has been removed from the project entirely. The app is local-only, single-user, and uses file-based sessions. Session-based selections are sufficient for the current use case. If persistence becomes needed, a JSON config file approach would be more appropriate than a database.
 
 #### Metadata
 
-- **Status:** Planned
+- **Status:** Archived
 - **Priority:** Medium
 - **Type:** Feature
 - **Assignee:** Unassigned
@@ -251,6 +223,51 @@ Originally scoped as "expand to a second discipline." Exceeded scope: 30 new sou
 
 - **Status:** Done
 - **Priority:** Medium
+- **Type:** Feature
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-001: Document AI-specific environment variables in .env.example
+
+#### Description
+
+Added all 6 AI-provider environment variables to `.env.example` with descriptive comments. Also updated APP_NAME to Abstractly and switched all framework drivers to file-based/sync (removing database dependency entirely).
+
+#### Acceptance Criteria
+
+- [x] `.env.example` includes all 6 AI-related env vars with placeholder values
+- [x] Each variable has an inline comment explaining its purpose and default
+- [x] `DIGEST_AI_PROVIDER` comment lists valid options (`gemini`, `openai`, `ollama`)
+
+#### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Maintenance
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-010: Add digest JSON export
+
+#### Description
+
+Added an "Export JSON" action to the digest viewer. When clicked, the current digest is saved as a timestamped JSON file to `storage/app/digests/` and simultaneously downloaded via the browser. This provides a local archive of interesting digests without requiring a database. The export button is only visible when a digest has been generated and contains content.
+
+#### Acceptance Criteria
+
+- [x] "Export JSON" button visible on digest page when digest has content
+- [x] Clicking export saves JSON to `storage/app/digests/{date}.json`
+- [x] Clicking export triggers browser download of the same file
+- [x] Export button hidden when no digest exists
+
+#### Metadata
+
+- **Status:** Done
+- **Priority:** High
 - **Type:** Feature
 - **Assignee:** Unassigned
 - **GitHub Issue:** No

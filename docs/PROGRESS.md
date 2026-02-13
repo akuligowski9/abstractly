@@ -222,3 +222,40 @@ Second documentation sync in this session. Updated TECH_SPEC.md, BACKLOG.md, and
 
 - Work on backlog items (RDIG-001 through RDIG-006 remain open)
 - Law and Arts disciplines still need sources before they can be enabled
+
+---
+
+## 2026-02-12 — Drop Database, Add Digest Export (RDIG-001, RDIG-010)
+
+### Summary
+
+Architectural simplification: removed database dependency entirely. The app is a local-only, single-user research tool — file-based sessions and cache are sufficient. Added digest JSON export feature (local file + browser download). Completed RDIG-001 (AI env vars) and created/completed RDIG-010 (export). Archived RDIG-006 (DB persistence — no longer applicable).
+
+### What was done
+
+- **Removed database dependency:**
+  - `.env.example`: SESSION_DRIVER → `file`, CACHE_STORE → `file`, QUEUE_CONNECTION → `sync`, DB_CONNECTION commented out
+  - `composer.json`: removed `php artisan migrate --force` from setup script
+  - APP_NAME updated to `Abstractly` in `.env.example`
+- **Added AI env vars to `.env.example`** (RDIG-001): `GOOGLE_API_KEY`, `DIGEST_AI_PROVIDER`, `DIGEST_AI_MODEL`, `OPENAI_API_KEY`, `DIGEST_AI_MODEL_OPENAI`, `OLLAMA_HOST` with descriptive comments
+- **Added digest export** (RDIG-010):
+  - `DigestViewer::export()` method saves JSON to `storage/app/digests/` and triggers browser download
+  - "Export JSON" button in digest-viewer blade (visible only when digest has content)
+  - Created `storage/app/digests/.gitkeep` directory
+- **Updated documentation:**
+  - TECH_SPEC: Data Model section rewritten for no-database architecture + export feature
+  - BACKLOG: RDIG-001 moved to Done, RDIG-006 archived, RDIG-010 added as Done
+  - PROGRESS: this entry
+
+### Decisions made
+
+- **No database at all** — file-based sessions, cache, and sync queue are sufficient for local single-user use
+- **Export over persistence** — digests are ephemeral by default; user exports interesting ones on demand as JSON
+- **RDIG-006 archived** — DB persistence is not needed; if selection persistence becomes needed, a JSON config file approach would be more appropriate
+- **RDIG-003 (queue jobs) deprioritized** — sync queue is fine for single-user local; keeping it in backlog but less urgent
+
+### What's next
+
+- Remaining backlog: RDIG-002 (caching), RDIG-003 (queue jobs), RDIG-004 (legacy controllers), RDIG-005 (unit tests), RDIG-008 (dedup), RDIG-009 (wire:navigate)
+- Update local `.env` to match new `.env.example` drivers
+- Law and Arts disciplines still need sources

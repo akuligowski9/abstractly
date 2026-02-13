@@ -7,6 +7,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
 use App\Services\SourcePreviewer;
 use App\Services\AiSummarizer;
+use Illuminate\Support\Facades\Storage;
 
 #[Layout('components.layouts.app')]
 #[Title('Weekly Digest')]
@@ -89,6 +90,18 @@ class DigestViewer extends Component
         session(['digest.latest' => $digest]);
         $this->digest = $digest;
         $this->generating = false;
+    }
+
+    public function export()
+    {
+        $json = json_encode($this->digest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $filename = 'digest-' . now()->format('Y-m-d_His') . '.json';
+
+        Storage::disk('local')->put("digests/{$filename}", $json);
+
+        return response()->streamDownload(function () use ($json) {
+            echo $json;
+        }, $filename, ['Content-Type' => 'application/json']);
     }
 
     public function render()

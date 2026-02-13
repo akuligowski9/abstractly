@@ -236,17 +236,23 @@ Livewire `wire:navigate` is used on internal links for SPA-like page transitions
 
 ## Data Model
 
-### Current: Config + Session
+### Current: Config + Session + File Export (No Database)
 
-- **No database tables for application data** — disciplines and sources are config-driven
-- User selections stored in session (session driver: `database`, SQLite)
-- Digest output stored in session (`digest.latest`)
-- Default Laravel migrations only (users, cache, jobs)
+- **No database** — all Laravel framework drivers use file-based or sync alternatives
+  - Session driver: `file` (stored in `storage/framework/sessions/`)
+  - Cache driver: `file` (stored in `storage/framework/cache/`)
+  - Queue driver: `sync` (jobs run inline, no worker process)
+- Disciplines and sources are config-driven (`config/disciplines.php`, `config/sources.php`)
+- User selections stored in session (`enabled_disciplines`, `enabled_sources.{slug}`)
+- Digest output stored in session (`digest.latest`) for current-session viewing
+- **Digest export:** JSON files saved to `storage/app/digests/` on demand via "Export JSON" action, also triggers browser download
+
+### Design Rationale
+
+This is a local-only, single-user research tool. There is no need for a database — file-based sessions persist across requests for the duration of the session lifetime (120 min default), and interesting digests are exported to JSON on demand. This avoids migration management and database dependencies entirely.
 
 ### Future Consideration
 
-- Persist user selections to database
-- Store generated digests for history/comparison
 - Paper deduplication across sources
 
 ---
