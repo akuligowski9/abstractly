@@ -23,3 +23,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /docs/OPS_PRIVATE.md
+/tests/Browser/screenshots
+/tests/Browser/console
+/tests/Browser/source
+.env.dusk.local
