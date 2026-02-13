@@ -74,28 +74,6 @@ Digest generation currently runs synchronously inside the `DigestViewer` Livewir
 
 ## Medium
 
-### RDIG-004: Remove or archive legacy controllers
-
-#### Description
-
-`DigestController` and `DisciplineController` are not referenced in any route and have been fully superseded by Livewire components (`DigestViewer`, `DisciplinePicker`, `SourcePicker`). They remain in `app/Http/Controllers/` as dead code, which adds confusion for future contributors who may assume they are active. A decision is needed: delete entirely, or relocate to a dedicated namespace (e.g., `App\Http\Controllers\Api\`) if they might serve as the basis for future API endpoints.
-
-#### Acceptance Criteria
-
-- [ ] `DigestController` and `DisciplineController` are removed from `app/Http/Controllers/` (or relocated with clear intent)
-- [ ] No remaining imports or references to removed controllers
-- [ ] Decision rationale logged in PROGRESS.md
-
-#### Metadata
-
-- **Status:** Planned
-- **Priority:** Medium
-- **Type:** Maintenance
-- **Assignee:** Unassigned
-- **GitHub Issue:** No
-
----
-
 ### RDIG-006: Persist user selections to database
 
 #### Description
@@ -134,28 +112,6 @@ A paper appearing in multiple arXiv subfields (e.g., cross-listed in `math.PR` a
 - **Status:** Planned
 - **Priority:** Low
 - **Type:** Feature
-- **Assignee:** Unassigned
-- **GitHub Issue:** No
-
----
-
-### RDIG-009: Standardize wire:navigate on all internal links
-
-#### Description
-
-Most internal navigation links use Livewire's `wire:navigate` directive for SPA-like page transitions without full reloads, but some breadcrumb links and navigation elements still use plain `href` attributes. This creates an inconsistent experience where some navigations are instant and others trigger a full page reload. All internal links between Livewire pages should use `wire:navigate` consistently.
-
-#### Acceptance Criteria
-
-- [ ] All internal `<a>` links between Livewire-rendered pages include `wire:navigate`
-- [ ] Source preview link (to traditional controller) intentionally excluded from `wire:navigate`
-- [ ] No regressions in navigation behavior (Dusk tests pass)
-
-#### Metadata
-
-- **Status:** Planned
-- **Priority:** Low
-- **Type:** Maintenance
 - **Assignee:** Unassigned
 - **GitHub Issue:** No
 
@@ -269,5 +225,49 @@ Added an "Export JSON" action to the digest viewer. When clicked, the current di
 - **Status:** Done
 - **Priority:** High
 - **Type:** Feature
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-004: Remove legacy controllers
+
+#### Description
+
+Deleted `DigestController` and `DisciplineController` from `app/Http/Controllers/`. Both were fully superseded by Livewire components (`DigestViewer`, `DisciplinePicker`, `SourcePicker`) and had zero route registrations, zero imports, and zero test references. Decision: delete entirely rather than relocate — no API endpoints are planned, and the logic has diverged enough from the Livewire implementations that they wouldn't serve as a useful starting point.
+
+#### Acceptance Criteria
+
+- [x] `DigestController` and `DisciplineController` removed from `app/Http/Controllers/`
+- [x] No remaining imports or references to removed controllers
+- [x] Decision rationale logged in PROGRESS.md
+
+#### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Maintenance
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-009: Standardize wire:navigate on all internal links
+
+#### Description
+
+Added `wire:navigate` to all 8 internal `<a>` links that were missing it. Three in the app layout (logo, Disciplines nav, Digest nav), one in the discipline picker (View digest button), three in the source preview page (two breadcrumbs + back button), and one in the source picker (Preview button — navigates to a traditional controller endpoint but `wire:navigate` still provides smoother transitions). All internal navigation now uses SPA-like page transitions consistently.
+
+#### Acceptance Criteria
+
+- [x] All internal `<a>` links between Livewire-rendered pages include `wire:navigate`
+- [x] Source preview link includes `wire:navigate` for smoother transitions (revised from original exclusion)
+- [x] No regressions in navigation behavior
+
+#### Metadata
+
+- **Status:** Done
+- **Priority:** Low
+- **Type:** Maintenance
 - **Assignee:** Unassigned
 - **GitHub Issue:** No

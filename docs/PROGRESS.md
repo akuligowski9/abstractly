@@ -293,3 +293,35 @@ Centralized AI provider configuration into `config/ai.php`, added comprehensive 
 
 - Remaining backlog: RDIG-002 (caching), RDIG-003 (queue jobs), RDIG-004 (legacy controllers), RDIG-008 (dedup), RDIG-009 (wire:navigate)
 - Law and Arts disciplines still need sources
+
+---
+
+## 2026-02-12 — Legacy Controller Cleanup + wire:navigate Standardization (RDIG-004, RDIG-009)
+
+### Summary
+
+Two maintenance backlog items completed as a batch. Deleted dead legacy controllers and standardized `wire:navigate` across all internal links for consistent SPA-like navigation.
+
+### What was done
+
+- **RDIG-004 — Deleted legacy controllers:**
+  - Removed `app/Http/Controllers/DigestController.php` (80 lines)
+  - Removed `app/Http/Controllers/DisciplineController.php` (105 lines)
+  - Verified zero PHP references remain (no routes, imports, or tests)
+  - Only `Controller.php` (base class) and `SourceController.php` (preview endpoint) remain
+- **RDIG-009 — Added `wire:navigate` to 8 internal links:**
+  - `components/layouts/app.blade.php`: logo link, Disciplines nav link, Digest nav link (3 links)
+  - `livewire/discipline-picker.blade.php`: "View digest" button (1 link)
+  - `sources/preview.blade.php`: "Disciplines" breadcrumb, discipline label breadcrumb, "Back to {label}" button (3 links)
+  - `livewire/source-picker.blade.php`: "Preview" button (1 link — navigates to traditional controller but benefits from smoother transition)
+- **Documentation updated:** BACKLOG.md (both items moved to Done), PROGRESS.md (this entry)
+
+### Decisions made
+
+- **Delete over relocate** for legacy controllers — no API endpoints are planned, and the Livewire component logic has diverged enough that the old controllers wouldn't be a useful starting point
+- **Include preview link** in `wire:navigate` standardization — even though it targets a traditional controller endpoint, `wire:navigate` still provides a smoother transition experience with no downside
+
+### What's next
+
+- Remaining backlog: RDIG-002 (caching, in progress separately), RDIG-003 (queue jobs), RDIG-008 (dedup)
+- Law and Arts disciplines still need sources

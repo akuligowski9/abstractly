@@ -80,7 +80,7 @@
                         </div>
                     </div>
 
-                    <a href="{{ route('sources.preview', [$slug, $s['key']]) }}"
+                    <a href="{{ route('sources.preview', [$slug, $s['key']]) }}" wire:navigate
                        class="shrink-0 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-sm font-medium transition"
                        onclick="event.stopPropagation()">
                         Preview

@@ -81,7 +81,7 @@
             Save selection
         </button>
 
-        <a href="{{ route('digest.show') }}"
+        <a href="{{ route('digest.show') }}" wire:navigate
            class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-4 py-2.5 font-medium transition">
             View digest
         </a>

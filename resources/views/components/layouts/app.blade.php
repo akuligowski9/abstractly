@@ -12,15 +12,15 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-14">
                 <div class="flex items-center gap-6">
-                    <a href="{{ route('disciplines.index') }}" class="text-lg font-bold tracking-tight text-gray-900">
+                    <a href="{{ route('disciplines.index') }}" wire:navigate class="text-lg font-bold tracking-tight text-gray-900">
                         Abstractly
                     </a>
                     <div class="hidden sm:flex items-center gap-4 text-sm font-medium">
-                        <a href="{{ route('disciplines.index') }}"
+                        <a href="{{ route('disciplines.index') }}" wire:navigate
                            class="{{ request()->routeIs('disciplines.*') ? 'text-indigo-600' : 'text-gray-600 hover:text-gray-900' }}">
                             Disciplines
                         </a>
-                        <a href="{{ route('digest.show') }}"
+                        <a href="{{ route('digest.show') }}" wire:navigate
                            class="{{ request()->routeIs('digest.*') ? 'text-indigo-600' : 'text-gray-600 hover:text-gray-900' }}">
                             Digest
                         </a>
