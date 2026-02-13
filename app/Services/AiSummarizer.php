@@ -17,7 +17,7 @@ class AiSummarizer
      */
     public function summarizeItems(string $sourceLabel, array $items): array
     {
-        $provider = env('DIGEST_AI_PROVIDER', 'gemini');
+        $provider = config('ai.provider');
 
         if ($provider === 'gemini') {
             return $this->summarizeItemsWithGemini($sourceLabel, $items);
@@ -36,8 +36,8 @@ class AiSummarizer
     // ---------------------------
     private function summarizeItemsWithGemini(string $sourceLabel, array $items): array
     {
-        $apiKey = env('GOOGLE_API_KEY');
-        $model  = env('DIGEST_AI_MODEL', 'gemini-2.0-flash');
+        $apiKey = config('ai.gemini.api_key');
+        $model  = config('ai.gemini.model');
 
         if (!$apiKey) {
             Log::warning('AiSummarizer(Gemini): GOOGLE_API_KEY not set; returning placeholders.');
@@ -89,8 +89,8 @@ class AiSummarizer
     // ---------------
     private function summarizeItemsWithOpenAI(string $sourceLabel, array $items): array
     {
-        $apiKey = env('OPENAI_API_KEY');
-        $model  = env('DIGEST_AI_MODEL_OPENAI', 'gpt-4o-mini');
+        $apiKey = config('ai.openai.api_key');
+        $model  = config('ai.openai.model');
 
         if (!$apiKey) {
             Log::warning('AiSummarizer(OpenAI): OPENAI_API_KEY not set; returning placeholders.');
@@ -141,8 +141,8 @@ class AiSummarizer
     // -----------------
     private function summarizeItemsWithOllama(string $sourceLabel, array $items): array
     {
-        $host  = rtrim(env('OLLAMA_HOST', 'http://127.0.0.1:11434'), '/');
-        $model = env('DIGEST_AI_MODEL', 'llama3.1'); // reuse same var for simplicity
+        $host  = rtrim(config('ai.ollama.host'), '/');
+        $model = config('ai.ollama.model');
 
         $batches = array_chunk($items, 3); // smaller context for local models
         $out = [];

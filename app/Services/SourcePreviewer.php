@@ -15,9 +15,6 @@ class SourcePreviewer
             // arXiv Atom
             $key === 'arxiv_math'                => $this->fetchArxiv($url, $limit),
 
-            // HAL JSON
-            $key === 'hal_math'                  => $this->fetchHalJson($url, $limit),
-
             // bioRxiv / medRxiv JSON
             $key === 'biorxiv_recent',
             $key === 'medrxiv_recent'           => $this->fetchRxivJson($url, $limit),
@@ -204,8 +201,9 @@ class SourcePreviewer
 
         // RSS
         $items = [];
-        foreach ($xml->channel->item ?? [] as $i => $item) {
-            if ($i >= $limit) break;
+        $i = 0;
+        foreach ($xml->channel->item ?? [] as $item) {
+            if ($i++ >= $limit) break;
             $summary = (string) ($item->description ?? $item->children('content', true)->encoded ?? '');
             $items[] = [
                 'title'   => trim((string) $item->title) ?: '(untitled)',
