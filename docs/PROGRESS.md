@@ -151,3 +151,74 @@ Full codebase audit and documentation sync to bring TECH_SPEC.md and PROGRESS.md
 ### What's next
 
 - Populate BACKLOG.md with proposed work items (derived from audit findings, TECH_SPEC open questions, and planned evolution phases)
+
+---
+
+## 2026-02-12 — Multi-Discipline Source Expansion
+
+### Summary
+
+Expanded from 1 active discipline (math) to 13 active disciplines with 49 total source entries. Added two new parser types (OSF Preprints, Europe PMC) to `SourcePreviewer`. Added Http::fake() canned responses for all source types in the Dusk test environment. Renamed branding from "Research Digest" to "Abstractly" in the layout.
+
+### What was done
+
+- **30 new sources** added to `config/sources.php` across 12 disciplines:
+  - CS & AI: 8 sources (arXiv cs.* categories)
+  - Earth & Environmental: 4 sources (arXiv physics + astro-ph + Europe PMC)
+  - Economics & Finance: 4 sources (arXiv econ + q-fin)
+  - Informatics: 3 sources (arXiv q-bio: QM, GN, MN)
+  - Engineering: 3 sources (arXiv eess + cs.RO)
+  - Neuroscience: 2 sources (arXiv q-bio.NC + Europe PMC)
+  - Pharmacology: 2 sources (arXiv q-bio.BM + Europe PMC)
+  - Agriculture: 2 sources (arXiv q-bio.PE + Europe PMC)
+  - Psychology: 1 source (PsyArXiv via OSF) + shared q-bio.NC
+  - Linguistics: 1 source (arXiv cs.CL)
+  - Education: 1 source (EdArXiv via OSF)
+  - Communication: 1 source (SocArXiv via OSF)
+- **13 of 15 disciplines** set to `ready=true` (only Law and Arts remain disabled)
+- **New parser methods** in `SourcePreviewer`:
+  - `fetchOsfPreprints()` — handles OSF Preprints JSON:API (PsyArXiv, SocArXiv, EdArXiv)
+  - `fetchEuropePmc()` — handles Europe PMC REST JSON
+- **Http::fake() canned responses** added to `AppServiceProvider` for Dusk environment (OSF, Europe PMC, in addition to existing arXiv/bioRxiv/medRxiv/Gemini stubs)
+- **Branding committed:** layout title and footer changed from "Research Digest" to "Abstractly"
+- **Dusk test assertions** updated for branding change
+- Committed as `ef07bee`
+
+### Decisions made
+
+- Cross-listing: `arxiv_qbio_NC` (Neurons and Cognition) mapped to both neuroscience and psychology disciplines
+- Law and Arts remain `ready=false` — no obvious open-access preprint sources identified yet
+- OSF Preprints API used for psychology, education, and communication (PsyArXiv, EdArXiv, SocArXiv)
+- Europe PMC used as aggregated preprint source for neuroscience, earth, pharmacology, and agriculture
+
+### What's next
+
+- Re-sync documentation to reflect this expansion (TECH_SPEC source counts, external integrations, parser docs are stale)
+- Mark RDIG-007 as Done in BACKLOG.md
+
+---
+
+## 2026-02-12 — Documentation Re-Sync (Post-Expansion)
+
+### Summary
+
+Second documentation sync in this session. Updated TECH_SPEC.md, BACKLOG.md, and PROGRESS.md to reflect the multi-discipline source expansion (commit `ef07bee`).
+
+### What was done
+
+- **Updated TECH_SPEC.md:**
+  - Discipline readiness: "only math is ready" → "13 of 15 are ready"
+  - Source table: replaced 4-row math-only table with full 13-discipline breakdown (49 sources)
+  - Source Fetching: added `fetchOsfPreprints()` and `fetchEuropePmc()` to parser table
+  - External Integrations: added OSF Preprints API and Europe PMC REST API
+  - Testing Strategy: added note about Http::fake() Dusk test isolation
+- **Updated BACKLOG.md:**
+  - RDIG-007: moved from Medium to Done with updated description reflecting actual scope (12 disciplines, not 1)
+  - RDIG-002: updated description to reflect 49 sources across 5 provider types
+  - RDIG-005: updated acceptance criteria to cover all 5 parser types
+- **Updated PROGRESS.md:** Added entry for commit `ef07bee` and this sync
+
+### What's next
+
+- Work on backlog items (RDIG-001 through RDIG-006 remain open)
+- Law and Arts disciplines still need sources before they can be enabled

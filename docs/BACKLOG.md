@@ -50,7 +50,7 @@ The `.env.example` file is missing all AI-provider-related environment variables
 
 #### Description
 
-Every digest generation re-fetches all feeds from arXiv, bioRxiv, and medRxiv with no caching layer. Repeated generation within the same session or across short intervals still hits external APIs, wasting time and risking rate limiting (arXiv enforcement is unclear but documented as a concern). A cache layer with a configurable TTL (e.g., 1 hour) should sit between `SourcePreviewer::fetch()` and the external HTTP calls, keyed on source URL and limit.
+Every digest generation re-fetches all feeds (arXiv, bioRxiv, medRxiv, OSF Preprints, Europe PMC — 49 sources total) with no caching layer. With 13 active disciplines, a full generation can issue dozens of HTTP requests. Repeated generation within the same session or across short intervals still hits external APIs, wasting time and risking rate limiting (arXiv enforcement is unclear but documented as a concern). A cache layer with a configurable TTL (e.g., 1 hour) should sit between `SourcePreviewer::fetch()` and the external HTTP calls, keyed on source URL and limit.
 
 #### Acceptance Criteria
 
@@ -122,11 +122,11 @@ Digest generation currently runs synchronously inside the `DigestViewer` Livewir
 
 #### Description
 
-The two core services — `SourcePreviewer` (feed fetching and parsing) and `AiSummarizer` (multi-provider AI summarization) — contain significant logic with no test coverage. Current unit and feature tests are Laravel example stubs only. These services handle multiple feed formats (Atom, JSON, RSS), batch processing, error handling, and placeholder fallback behavior. Mocked HTTP responses should verify parsing correctness, batching logic, error paths, and graceful degradation.
+The two core services — `SourcePreviewer` (feed fetching and parsing) and `AiSummarizer` (multi-provider AI summarization) — contain significant logic with no test coverage. Current unit and feature tests are Laravel example stubs only. `SourcePreviewer` now handles 5 parser types (arXiv Atom, bioRxiv/medRxiv JSON, OSF Preprints JSON:API, Europe PMC REST JSON, and fallback RSS/Atom). `AiSummarizer` handles batch processing, multi-provider dispatch, error handling, and placeholder fallback behavior. Mocked HTTP responses should verify parsing correctness, batching logic, error paths, and graceful degradation. Note: canned response patterns already exist in `AppServiceProvider` for Dusk and can be reused.
 
 #### Acceptance Criteria
 
-- [ ] Unit tests exist for `SourcePreviewer` covering Atom, JSON, and RSS parsing
+- [ ] Unit tests exist for `SourcePreviewer` covering all 5 parser types (Atom, bioRxiv JSON, OSF JSON:API, Europe PMC JSON, RSS fallback)
 - [ ] Unit tests exist for `AiSummarizer` covering at least one provider's happy path and failure/placeholder path
 - [ ] HTTP calls are mocked (no real external requests in tests)
 - [ ] Tests run via `composer test` without additional setup
@@ -155,30 +155,6 @@ Discipline and source selections are currently stored in the session only, which
 - [ ] Migration creates the necessary table(s)
 - [ ] Livewire components read from persistent storage with session as a write-through cache
 - [ ] Existing Dusk tests still pass
-
-#### Metadata
-
-- **Status:** Planned
-- **Priority:** Medium
-- **Type:** Feature
-- **Assignee:** Unassigned
-- **GitHub Issue:** No
-
----
-
-### RDIG-007: Expand to a second discipline
-
-#### Description
-
-Only `math` is currently marked as `ready=true` in `config/disciplines.php`. The natural next candidate is `cs` (Computer Science & AI), since arXiv has extensive `cs.*` categories that follow the same Atom feed pattern already supported by `SourcePreviewer`. This involves adding `cs.*` sources to `config/sources.php`, setting `ready=true` on the `cs` discipline, and verifying the end-to-end flow (selection → fetch → summarize → display) works for the new discipline.
-
-#### Acceptance Criteria
-
-- [ ] `cs` discipline set to `ready=true` in `config/disciplines.php`
-- [ ] At least 5 `cs.*` arXiv sources added to `config/sources.php` with `disciplines: ['cs']`
-- [ ] End-to-end digest generation works for `cs` discipline (fetch, summarize, display)
-- [ ] Default source selection for `cs` is sensible (not all subfields)
-- [ ] Dusk test added or updated to verify `cs` discipline appears as selectable
 
 #### Metadata
 
@@ -257,4 +233,24 @@ _No items._
 
 ## Done
 
-_No items._
+### RDIG-007: Expand beyond single discipline
+
+#### Description
+
+Originally scoped as "expand to a second discipline." Exceeded scope: 30 new sources added across 12 disciplines, with 13 of 15 disciplines now `ready=true`. New parser methods (`fetchOsfPreprints`, `fetchEuropePmc`) support OSF Preprints and Europe PMC alongside existing arXiv and bioRxiv/medRxiv parsers. Http::fake() canned responses added for all new source types in Dusk environment. Completed in commit `ef07bee`.
+
+#### Acceptance Criteria
+
+- [x] Multiple disciplines set to `ready=true` in `config/disciplines.php`
+- [x] Sources added for each ready discipline in `config/sources.php`
+- [x] End-to-end digest generation works for new disciplines
+- [x] New parsers added for OSF Preprints and Europe PMC
+- [x] Dusk test isolation updated with canned responses for all source types
+
+#### Metadata
+
+- **Status:** Done
+- **Priority:** Medium
+- **Type:** Feature
+- **Assignee:** Unassigned
+- **GitHub Issue:** No

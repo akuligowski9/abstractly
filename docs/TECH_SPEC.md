@@ -73,7 +73,7 @@ Mathematics
 - Selection stored in session (`enabled_disciplines`)
 - Only `ready=true` disciplines are selectable and participate in digest generation
 - Non-ready disciplines appear with "Coming soon" badge and are visually disabled
-- Currently 15 disciplines defined; only `math` is `ready`
+- Currently 15 disciplines defined; 13 are `ready=true` (only Law and Arts remain disabled)
 
 **Configuration:** `config/disciplines.php`
 
@@ -101,14 +101,25 @@ Includes alias mapping for common typos/synonyms (e.g., `neuro` → `neuroscienc
 
 Fields: `key`, `label`, `kind` (primary | json), `disciplines[]`, `url`, `signal`, `notes`
 
-**Current sources (17 total, all mapped to math):**
+**Current sources (49 entries across 13 disciplines):**
 
-| Key | Label | Kind |
-|-----|-------|------|
-| `arxiv_math_all` | arXiv — Mathematics (all) | Atom (primary) |
-| `arxiv_math_{AG,AT,CO,DG,FA,GT,NT,PR,RA,RT,OC,NA,AP,ST}` | arXiv subfields (14) | Atom (primary) |
-| `biorxiv_recent` | bioRxiv — Recent | JSON |
-| `medrxiv_recent` | medRxiv — Recent | JSON |
+| Discipline | Sources | Provider Types |
+|------------|---------|---------------|
+| Mathematics | 17 (arxiv_math_all + 14 subfields + bioRxiv + medRxiv) | Atom, JSON |
+| Computer Science & AI | 8 (arxiv_cs_all + 7 subfields) | Atom |
+| Earth & Environmental | 4 (3 arXiv physics/astro + Europe PMC) | Atom, JSON |
+| Economics & Finance | 4 (3 arXiv econ + arXiv q-fin) | Atom |
+| Informatics | 3 (arXiv q-bio: QM, GN, MN) | Atom |
+| Engineering | 3 (arXiv eess: SP, SY + cs.RO) | Atom |
+| Neuroscience | 2 (arXiv q-bio.NC + Europe PMC) | Atom, JSON |
+| Pharmacology | 2 (arXiv q-bio.BM + Europe PMC) | Atom, JSON |
+| Agriculture | 2 (arXiv q-bio.PE + Europe PMC) | Atom, JSON |
+| Psychology | 1 (PsyArXiv via OSF) + shared q-bio.NC | JSON, Atom |
+| Linguistics | 1 (arXiv cs.CL) | Atom |
+| Education | 1 (EdArXiv via OSF) | JSON |
+| Communication | 1 (SocArXiv via OSF) | JSON |
+
+One source (`arxiv_qbio_NC`) is cross-listed to both Neuroscience and Psychology.
 
 ---
 
@@ -244,13 +255,15 @@ Livewire `wire:navigate` is used on internal links for SPA-like page transitions
 
 ### Source Fetching (`SourcePreviewer`)
 
-Parses multiple feed formats:
+Parses multiple feed formats via key-based dispatch:
 
-| Format | Parser | Sources |
-|--------|--------|---------|
-| Atom | `simplexml_load_string` | arXiv |
-| JSON | `->json()` | bioRxiv, medRxiv |
-| RSS | `simplexml_load_string` | Fallback for any source |
+| Format | Parser Method | Sources |
+|--------|--------------|---------|
+| Atom | `fetchArxiv()` | All arXiv feeds (math, cs, econ, physics, q-bio, eess, astro-ph) |
+| bioRxiv/medRxiv JSON | `fetchRxivJson()` | bioRxiv, medRxiv |
+| OSF Preprints JSON:API | `fetchOsfPreprints()` | PsyArXiv, SocArXiv, EdArXiv |
+| Europe PMC REST JSON | `fetchEuropePmc()` | Europe PMC topic searches |
+| RSS/Atom (fallback) | `fetchRssOrAtom()` | Any unrecognized source |
 
 Normalized output per item:
 
@@ -295,6 +308,8 @@ Graceful degradation: placeholder text on failure per batch.
 | arXiv API | Research papers (Atom) | None |
 | bioRxiv API | Preprints (JSON) | None |
 | medRxiv API | Preprints (JSON) | None |
+| OSF Preprints API | PsyArXiv, SocArXiv, EdArXiv (JSON:API) | None |
+| Europe PMC REST API | Aggregated preprints by topic (JSON) | None |
 | Google Gemini API | AI summarization (default) | `GOOGLE_API_KEY` |
 | OpenAI API | AI summarization (optional) | `OPENAI_API_KEY` |
 | Ollama | Local AI summarization (optional) | None (local) |
@@ -343,6 +358,10 @@ Graceful degradation: placeholder text on failure per batch.
 | `DigestGenerationTest` | 5 | Empty state, generate button, full flow, color sections |
 
 **Page objects:** `tests/Browser/Pages/` (HomePage, abstract Page)
+
+### Dusk Test Isolation
+
+`AppServiceProvider` registers `Http::fake()` stubs when running in the `dusk` environment, so Dusk tests never hit real external APIs. Canned responses exist for arXiv (Atom), bioRxiv/medRxiv (JSON), OSF Preprints (JSON:API), Europe PMC (JSON), and Gemini (AI summaries).
 
 ### Coverage goals
 
