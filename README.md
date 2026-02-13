@@ -66,6 +66,20 @@ Results stream to the browser progressively via Livewire 3's `$this->stream()` a
 
 ## Quickstart
 
+### Docker (recommended)
+
+```bash
+git clone https://github.com/akuligowski9/abstractly.git
+cd abstractly
+cp .env.example .env    # set GOOGLE_API_KEY (or other AI provider keys)
+docker compose up --build
+# → http://localhost:8000
+```
+
+Saved papers, cache, and sessions persist across restarts via a named volume. To reset all data: `docker compose down -v`.
+
+### Local
+
 ```bash
 # Clone
 git clone https://github.com/akuligowski9/abstractly.git

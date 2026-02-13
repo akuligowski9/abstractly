@@ -1,0 +1,42 @@
+# Dependencies (rebuilt in container)
+vendor/
+node_modules/
+
+# Built assets (rebuilt in container)
+public/build/
+public/hot
+
+# Environment and secrets
+.env
+.env.backup
+.env.dusk.local
+
+# Version control
+.git/
+.gitattributes
+.gitignore
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing artifacts
+.phpunit.cache/
+.phpunit.result.cache
+phpunit.dusk.xml
+tests/Browser/screenshots/
+tests/Browser/console/
+
+# Cached bootstrap files (regenerated at build time via package:discover)
+bootstrap/cache/*.php
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation (not needed at runtime)
+docs/
+CLAUDE.md
