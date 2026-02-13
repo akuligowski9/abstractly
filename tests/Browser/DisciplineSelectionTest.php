@@ -66,7 +66,7 @@ class DisciplineSelectionTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit('/disciplines')
                 ->assertSee('Coming soon')
-                ->assertSee('Earth & Environmental Sciences');
+                ->assertSee('Law & Legal Studies');
         });
     }
 

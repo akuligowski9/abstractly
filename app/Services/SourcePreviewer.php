@@ -22,6 +22,14 @@ class SourcePreviewer
             $key === 'biorxiv_recent',
             $key === 'medrxiv_recent'           => $this->fetchRxivJson($url, $limit),
 
+            // OSF Preprints (PsyArXiv, SocArXiv, EdArXiv)
+            str_starts_with($key, 'psyarxiv_'),
+            str_starts_with($key, 'socarxiv_'),
+            str_starts_with($key, 'edarxiv_')  => $this->fetchOsfPreprints($url, $limit),
+
+            // Europe PMC
+            str_starts_with($key, 'europepmc_') => $this->fetchEuropePmc($url, $limit),
+
             // fallback: try RSS/Atom
             default                             => $this->fetchRssOrAtom($url, $limit),
         };
@@ -105,6 +113,57 @@ class SourcePreviewer
                 'summary' => $abs,
             ];
         })->values()->all();
+    }
+
+    /** OSF Preprints JSON:API (PsyArXiv, SocArXiv, EdArXiv) */
+    private function fetchOsfPreprints(string $url, int $limit): array
+    {
+        $res = $this->client()->get($url);
+        if (!$res->ok()) {
+            throw new \RuntimeException("HTTP {$res->status()}: " . substr($res->body(), 0, 120));
+        }
+        $data = $res->json();
+
+        return collect($data['data'] ?? [])
+            ->take($limit)
+            ->map(function ($item) {
+                $attrs = $item['attributes'] ?? [];
+                $title = $attrs['title'] ?? '(untitled)';
+                $abstract = $attrs['description'] ?? '';
+                $doi = $attrs['doi'] ?? null;
+                $link = $doi ? ('https://doi.org/' . $doi) : ($item['links']['html'] ?? '#');
+
+                return [
+                    'title'   => $title,
+                    'url'     => $link,
+                    'summary' => $abstract,
+                ];
+            })->values()->all();
+    }
+
+    /** Europe PMC REST JSON */
+    private function fetchEuropePmc(string $url, int $limit): array
+    {
+        $res = $this->client()->get($url);
+        if (!$res->ok()) {
+            throw new \RuntimeException("HTTP {$res->status()}: " . substr($res->body(), 0, 120));
+        }
+        $data = $res->json();
+
+        return collect($data['resultList']['result'] ?? [])
+            ->take($limit)
+            ->map(function ($r) {
+                $title = $r['title'] ?? '(untitled)';
+                $abstract = $r['abstractText'] ?? '';
+                $doi = $r['doi'] ?? null;
+                $link = $doi ? ('https://doi.org/' . $doi) : '#';
+
+                return [
+                    'title'   => $title,
+                    'url'     => $link,
+                    'summary' => $abstract,
+                ];
+            })->values()->all();
     }
 
     /** RSS or Atom (fallback) */

@@ -41,7 +41,7 @@ class NavigationTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit('/digest')
                 ->within('nav', function (Browser $nav) {
-                    $nav->clickLink('Research Digest');
+                    $nav->clickLink('Abstractly');
                 })
                 ->assertPathIs('/disciplines');
         });

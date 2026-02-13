@@ -12,7 +12,7 @@ class ExampleTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit('/')
                 ->assertPathIs('/disciplines')
-                ->assertSee('Research Digest');
+                ->assertSee('Abstractly');
         });
     }
 }

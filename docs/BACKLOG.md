@@ -24,25 +24,228 @@ _No items._
 
 ## High
 
-_No items._
+### RDIG-001: Document AI-specific environment variables in .env.example
+
+#### Description
+
+The `.env.example` file is missing all AI-provider-related environment variables (`GOOGLE_API_KEY`, `DIGEST_AI_PROVIDER`, `DIGEST_AI_MODEL`, `OPENAI_API_KEY`, `DIGEST_AI_MODEL_OPENAI`, `OLLAMA_HOST`). Anyone cloning the repository has no visibility into the configuration required for digest generation to function. These variables are referenced in `AiSummarizer` and are essential to the core feature. Adding them with descriptive comments is a quick fix with high documentation value.
+
+#### Acceptance Criteria
+
+- [ ] `.env.example` includes all 6 AI-related env vars with placeholder values
+- [ ] Each variable has an inline comment explaining its purpose and default
+- [ ] `DIGEST_AI_PROVIDER` comment lists valid options (`gemini`, `openai`, `ollama`)
+
+#### Metadata
+
+- **Status:** Planned
+- **Priority:** High
+- **Type:** Maintenance
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-002: Cache source fetch results
+
+#### Description
+
+Every digest generation re-fetches all feeds from arXiv, bioRxiv, and medRxiv with no caching layer. Repeated generation within the same session or across short intervals still hits external APIs, wasting time and risking rate limiting (arXiv enforcement is unclear but documented as a concern). A cache layer with a configurable TTL (e.g., 1 hour) should sit between `SourcePreviewer::fetch()` and the external HTTP calls, keyed on source URL and limit.
+
+#### Acceptance Criteria
+
+- [ ] Source fetch results are cached with a configurable TTL
+- [ ] Cache key includes source URL and limit parameter
+- [ ] Cached results are returned without HTTP requests on subsequent calls within TTL
+- [ ] Cache can be bypassed or cleared manually (e.g., via artisan command or force-refresh flag)
+- [ ] Existing tests still pass; new tests cover cache hit/miss behavior
+
+#### Metadata
+
+- **Status:** Planned
+- **Priority:** High
+- **Type:** Feature
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-003: Move digest generation to a queued job
+
+#### Description
+
+Digest generation currently runs synchronously inside the `DigestViewer` Livewire component with a 120-second timeout. This blocks the browser for the full duration, risks timeout on slow AI providers or many sources, and provides no progress feedback beyond a spinner. Generation should be dispatched to a queue job, with the Livewire component polling for completion or receiving an event when the job finishes. This unblocks the UI and makes generation more resilient to transient failures.
+
+#### Acceptance Criteria
+
+- [ ] Digest generation dispatched as a queued job
+- [ ] UI shows meaningful progress state while job runs (polling or event-based)
+- [ ] User can navigate away and return to see completed digest
+- [ ] Timeout and failure handling work correctly in the queued context
+- [ ] Existing Dusk E2E tests updated to account for async generation flow
+
+#### Metadata
+
+- **Status:** Planned
+- **Priority:** High
+- **Type:** Feature
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
 
 ---
 
 ## Medium
 
-_No items._
+### RDIG-004: Remove or archive legacy controllers
+
+#### Description
+
+`DigestController` and `DisciplineController` are not referenced in any route and have been fully superseded by Livewire components (`DigestViewer`, `DisciplinePicker`, `SourcePicker`). They remain in `app/Http/Controllers/` as dead code, which adds confusion for future contributors who may assume they are active. A decision is needed: delete entirely, or relocate to a dedicated namespace (e.g., `App\Http\Controllers\Api\`) if they might serve as the basis for future API endpoints.
+
+#### Acceptance Criteria
+
+- [ ] `DigestController` and `DisciplineController` are removed from `app/Http/Controllers/` (or relocated with clear intent)
+- [ ] No remaining imports or references to removed controllers
+- [ ] Decision rationale logged in PROGRESS.md
+
+#### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Maintenance
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-005: Add unit tests for SourcePreviewer and AiSummarizer services
+
+#### Description
+
+The two core services — `SourcePreviewer` (feed fetching and parsing) and `AiSummarizer` (multi-provider AI summarization) — contain significant logic with no test coverage. Current unit and feature tests are Laravel example stubs only. These services handle multiple feed formats (Atom, JSON, RSS), batch processing, error handling, and placeholder fallback behavior. Mocked HTTP responses should verify parsing correctness, batching logic, error paths, and graceful degradation.
+
+#### Acceptance Criteria
+
+- [ ] Unit tests exist for `SourcePreviewer` covering Atom, JSON, and RSS parsing
+- [ ] Unit tests exist for `AiSummarizer` covering at least one provider's happy path and failure/placeholder path
+- [ ] HTTP calls are mocked (no real external requests in tests)
+- [ ] Tests run via `composer test` without additional setup
+- [ ] All new tests pass
+
+#### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Maintenance
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-006: Persist user selections to database
+
+#### Description
+
+Discipline and source selections are currently stored in the session only, which has a 120-minute default lifetime. Returning users must re-select their preferences every time the session expires. A simple persistence layer (e.g., a `user_preferences` table or key-value store) would allow selections to survive across sessions. This is a prerequisite for any future multi-user or authentication features.
+
+#### Acceptance Criteria
+
+- [ ] User discipline and source selections are persisted to the database
+- [ ] Selections survive session expiry and are restored on next visit
+- [ ] Migration creates the necessary table(s)
+- [ ] Livewire components read from persistent storage with session as a write-through cache
+- [ ] Existing Dusk tests still pass
+
+#### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-007: Expand to a second discipline
+
+#### Description
+
+Only `math` is currently marked as `ready=true` in `config/disciplines.php`. The natural next candidate is `cs` (Computer Science & AI), since arXiv has extensive `cs.*` categories that follow the same Atom feed pattern already supported by `SourcePreviewer`. This involves adding `cs.*` sources to `config/sources.php`, setting `ready=true` on the `cs` discipline, and verifying the end-to-end flow (selection → fetch → summarize → display) works for the new discipline.
+
+#### Acceptance Criteria
+
+- [ ] `cs` discipline set to `ready=true` in `config/disciplines.php`
+- [ ] At least 5 `cs.*` arXiv sources added to `config/sources.php` with `disciplines: ['cs']`
+- [ ] End-to-end digest generation works for `cs` discipline (fetch, summarize, display)
+- [ ] Default source selection for `cs` is sensible (not all subfields)
+- [ ] Dusk test added or updated to verify `cs` discipline appears as selectable
+
+#### Metadata
+
+- **Status:** Planned
+- **Priority:** Medium
+- **Type:** Feature
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
 
 ---
 
 ## Low
 
-_No items._
+### RDIG-008: Paper deduplication across sources
+
+#### Description
+
+A paper appearing in multiple arXiv subfields (e.g., cross-listed in `math.PR` and `math.ST`) will show up multiple times in the generated digest, each with its own AI summary. This wastes AI summarization budget and clutters the output. Deduplication should happen after fetching and before summarization, keyed on URL or arXiv ID. Duplicates should be collapsed into a single item with a note about which sources it appeared in.
+
+#### Acceptance Criteria
+
+- [ ] Papers with identical URLs or arXiv IDs are deduplicated before AI summarization
+- [ ] Deduplicated items retain a reference to all sources they appeared in
+- [ ] AI summarization cost is reduced proportionally to duplicates removed
+- [ ] Digest display indicates when a paper appeared in multiple sources
+
+#### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Feature
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-009: Standardize wire:navigate on all internal links
+
+#### Description
+
+Most internal navigation links use Livewire's `wire:navigate` directive for SPA-like page transitions without full reloads, but some breadcrumb links and navigation elements still use plain `href` attributes. This creates an inconsistent experience where some navigations are instant and others trigger a full page reload. All internal links between Livewire pages should use `wire:navigate` consistently.
+
+#### Acceptance Criteria
+
+- [ ] All internal `<a>` links between Livewire-rendered pages include `wire:navigate`
+- [ ] Source preview link (to traditional controller) intentionally excluded from `wire:navigate`
+- [ ] No regressions in navigation behavior (Dusk tests pass)
+
+#### Metadata
+
+- **Status:** Planned
+- **Priority:** Low
+- **Type:** Maintenance
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
 
 ---
 
 ## Parking Lot
 
-_No items._
+- **Research radar view** — Visual overview of trending research areas across disciplines
+- **Saved papers** — Bookmark individual papers from the digest for later reference
+- **Personal trend tracking** — Track which topics and disciplines the user engages with over time
+- **Research-to-experiment mapping** — Connect papers to personal project ideas or hypotheses
+- **The Shelf integration** — Pipeline from research digest into the attention-management app (cross-project)
+- **Ranking by novelty or citations** — Prioritize papers in the digest by impact signals
+- **Cross-discipline clustering** — Group related papers that span multiple discipline boundaries
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Project:** Abstractly (research-digest)
 **Version:** v0.1
-**Last Updated:** 2026-02-10
+**Last Updated:** 2026-02-12
 
 ---
 
@@ -64,42 +64,49 @@ Mathematics
 
 ### Discipline Management
 
-**View:** `disciplines/index.blade.php`
-**Route:** `GET /disciplines`
+**Component:** `App\Livewire\DisciplinePicker`
+**View:** `livewire/discipline-picker.blade.php`
+**Route:** `GET /disciplines` (Livewire full-page component)
 
-- Users can enable/disable disciplines via checkboxes
+- Users can enable/disable disciplines via interactive card grid
+- Toggle individual disciplines, or use Select All / Select None
 - Selection stored in session (`enabled_disciplines`)
-- Only `ready=true` disciplines participate in digest generation
+- Only `ready=true` disciplines are selectable and participate in digest generation
+- Non-ready disciplines appear with "Coming soon" badge and are visually disabled
 - Currently 15 disciplines defined; only `math` is `ready`
 
 **Configuration:** `config/disciplines.php`
 
 Fields: `slug`, `label`, `ready` (boolean)
 
-Includes alias mapping for common typos/synonyms.
+Includes alias mapping for common typos/synonyms (e.g., `neuro` → `neuroscience`, `comp_sci` → `cs`).
 
 ---
 
 ### Source Management
 
-**View:** `disciplines/show.blade.php`
-**Route:** `GET /disciplines/{slug}`
+**Component:** `App\Livewire\SourcePicker`
+**View:** `livewire/source-picker.blade.php`
+**Route:** `GET /disciplines/{slug}` (Livewire full-page component)
 
-- Users see all sources for a discipline
-- Can enable/disable sources per discipline
+- Users see all sources for a discipline with breadcrumb navigation back to discipline picker
+- Can enable/disable sources per discipline via interactive card list
+- Toggle individual sources, or use Select All / Select None
+- Kind badges color-coded: primary (indigo), json (emerald), other (gray)
+- Preview links open raw source preview (traditional controller endpoint)
 - Selection stored in session (`enabled_sources.{slug}`)
-- Default "starter pack" per discipline (e.g., math gets arXiv subfields + bioRxiv/medRxiv)
+- Default "starter pack" per discipline (e.g., math gets arXiv core + select subfields + bioRxiv/medRxiv)
 
 **Configuration:** `config/sources.php`
 
-Fields: `key`, `label`, `kind` (primary | json | rss), `disciplines[]`, `url`, `signal`, `notes`
+Fields: `key`, `label`, `kind` (primary | json), `disciplines[]`, `url`, `signal`, `notes`
 
-**Current sources (all math):**
+**Current sources (17 total, all mapped to math):**
 
 | Key | Label | Kind |
 |-----|-------|------|
-| `arxiv_math_all` | arXiv — Mathematics (all) | Atom |
-| `arxiv_math_{AG,AT,CO,DG,FA,GT,NT,PR,RA,RT,OC,NA,AP,ST}` | arXiv subfields (13) | Atom |
+| `arxiv_math_all` | arXiv — Mathematics (all) | Atom (primary) |
+| `arxiv_math_{AG,AT,CO,DG,FA,GT,NT,PR,RA,RT,OC,NA,AP,ST}` | arXiv subfields (14) | Atom (primary) |
 | `biorxiv_recent` | bioRxiv — Recent | JSON |
 | `medrxiv_recent` | medRxiv — Recent | JSON |
 
@@ -107,62 +114,76 @@ Fields: `key`, `label`, `kind` (primary | json | rss), `disciplines[]`, `url`, `
 
 ### Source Preview
 
-**View:** `sources/preview.blade.php`
+**Controller:** `App\Http\Controllers\SourceController@preview`
+**View:** `sources/preview.blade.php` (traditional Blade, not Livewire)
 **Route:** `GET /disciplines/{slug}/sources/{key}/preview`
 
 - Preview latest entries from a single source
 - Limit parameter (1–10, default 5)
 - No AI summarization — raw titles and abstracts
+- Breadcrumb navigation back to discipline source picker
+- This is the only active traditional controller endpoint in the application
 
 ---
 
-### Digest Generation
+### Digest Generation & Display
 
-**Route:** `POST /digest/generate`
-**Controller:** `DigestController@generate`
+**Component:** `App\Livewire\DigestViewer`
+**View:** `livewire/digest-viewer.blade.php`
+**Route:** `GET /digest` (Livewire full-page component)
 
-Flow:
+Generation is triggered in-page via Livewire action (no POST/redirect). The component handles both generation and display.
+
+**Generation flow (triggered by `wire:click="generate"`):**
 
 1. Read enabled disciplines from session
 2. Filter to `ready` disciplines
 3. Resolve enabled sources per discipline
-4. Fetch latest items per source via `SourcePreviewer`
+4. Fetch latest items per source via `SourcePreviewer` (errors caught per-source)
 5. Generate AI summaries per item via `AiSummarizer`
-6. Assemble digest structure
+6. Assemble digest structure (discipline → sections → items)
 7. Store in session: `digest.latest`
-8. Redirect to `digest.show`
+8. Update component state reactively
 
-Supports `scope` parameter (single discipline) and `limit` parameter (1–10 items per source).
+**UI states:**
 
----
+- **Empty state:** Icon + message when no digest exists or has no items
+- **Loading state:** Full overlay spinner during generation (`wire:loading`)
+- **Generated state:** Hierarchical display with color-coded AI perspectives
 
-### Digest Display
-
-**View:** `digest/show.blade.php`
-**Route:** `GET /digest`
-
-Displays:
+**Display structure:**
 
 ```
-Discipline
-    Source
+Discipline (H2)
+    Source (card, bg-white rounded-xl shadow-sm)
         Paper
-            ELI5
-            SWE Impact
-            Investor Impact
+            Title (linked to source)
+            Summary (truncated, line-clamp-3)
+            ELI5        (green left border)
+            Solo SWE    (blue left border)
+            Investor    (amber left border)
 ```
+
+Fixed limit of 5 items per source. Request timeout of 120 seconds.
 
 ---
 
 ## Architecture Overview
 
+The application uses a **Livewire 3-first architecture**. Core user-facing flows are handled by Livewire full-page components mounted directly as route targets. A single traditional controller remains for source preview.
+
 ```
-Laravel 12 (PHP 8.2+)
+Laravel 12 (PHP 8.2+) + Livewire 3
+│
+├── Livewire Components (primary UI layer)
+│     ├── DisciplinePicker        (enable/disable disciplines)
+│     ├── SourcePicker            (enable/disable sources per discipline)
+│     └── DigestViewer            (generate + display digest)
 │
 ├── Controllers
-│     ├── DisciplineController    (enable/disable disciplines + sources)
-│     ├── SourceController        (preview a single source)
-│     └── DigestController        (generate + show digest)
+│     ├── SourceController        (preview a single source — only active controller)
+│     ├── DisciplineController    [LEGACY — not routed, superseded by Livewire]
+│     └── DigestController        [LEGACY — not routed, superseded by Livewire]
 │
 ├── Services
 │     ├── SourcePreviewer         (fetch + normalize feed data)
@@ -172,15 +193,33 @@ Laravel 12 (PHP 8.2+)
 │     ├── disciplines.php         (discipline registry)
 │     └── sources.php             (source registry)
 │
-├── Views (Blade)
-│     ├── disciplines/index       (discipline picker)
-│     ├── disciplines/show        (source picker per discipline)
-│     ├── sources/preview         (raw source preview)
-│     └── digest/show             (rendered digest)
+├── Views
+│     ├── livewire/
+│     │     ├── discipline-picker (Livewire companion view)
+│     │     ├── source-picker     (Livewire companion view)
+│     │     └── digest-viewer     (Livewire companion view)
+│     ├── sources/preview         (traditional Blade view)
+│     └── components/layouts/app  (shared layout shell)
 │
 └── Frontend
-      └── Vite (vite.config.js)
+      ├── Vite 7 (vite.config.js)
+      ├── Tailwind CSS v4 (zero-config, CSS-first via @tailwindcss/vite)
+      └── Alpine.js (bundled with Livewire 3)
 ```
+
+### Routing
+
+Routes mount Livewire components directly as full-page endpoints:
+
+```
+GET /                          → redirect to disciplines.index
+GET /disciplines               → DisciplinePicker::class
+GET /disciplines/{slug}        → SourcePicker::class
+GET /disciplines/{slug}/sources/{key}/preview → SourceController@preview
+GET /digest                    → DigestViewer::class
+```
+
+Livewire `wire:navigate` is used on internal links for SPA-like page transitions without full reloads.
 
 ---
 
@@ -275,10 +314,39 @@ Graceful degradation: placeholder text on failure per batch.
 
 ## Testing Strategy
 
-- **Test directory:** `tests/`
-- **Runner:** PHPUnit (`phpunit.xml`)
-- **Run command:** `composer test`
-- **Coverage goals:** Not yet established
+### Unit & Feature Tests
+
+- **Directory:** `tests/Unit/`, `tests/Feature/`
+- **Runner:** PHPUnit 11 (`phpunit.xml`)
+- **Run command:** `composer test` (clears config cache, runs `php artisan test`)
+- **Environment:** In-memory SQLite, array session/cache, sync queue
+- **Current coverage:** Example tests only (basic redirect assertion)
+
+### E2E / Browser Tests (Dusk)
+
+- **Directory:** `tests/Browser/`
+- **Runner:** Laravel Dusk 8 (headless Chrome)
+- **Run command:** `php artisan dusk`
+- **Environment:** `.env.dusk.local` (separate from main `.env`)
+- **Driver:** `chrome-headless-shell-mac-arm64` (macOS ARM64)
+- **Window:** 1920x1080
+
+**E2E test coverage (37 test cases across 7 files):**
+
+| Test File | Cases | Coverage |
+|-----------|-------|----------|
+| `ExampleTest` | 1 | Basic root redirect |
+| `NavigationTest` | 9 | Nav links, breadcrumbs, active highlights, 404 handling |
+| `DisciplineSelectionTest` | 7 | Toggle, select all/none, save persistence, disabled states |
+| `SourceSelectionTest` | 8 | Toggle, badges, select all/none, save, preview links |
+| `SourcePreviewTest` | 7 | Item display, breadcrumbs, back nav, bioRxiv, 404s |
+| `DigestGenerationTest` | 5 | Empty state, generate button, full flow, color sections |
+
+**Page objects:** `tests/Browser/Pages/` (HomePage, abstract Page)
+
+### Coverage goals
+
+Not yet established. E2E tests cover the primary user workflow end-to-end (disciplines → sources → preview → digest generation).
 
 ---
 

@@ -46,6 +46,12 @@ class AppServiceProvider extends ServiceProvider
                 'collection' => $this->cannedRxivCollection('medrxiv'),
             ], 200),
 
+            // OSF Preprints (PsyArXiv, SocArXiv, EdArXiv)
+            'api.osf.io/*' => Http::response($this->cannedOsfPreprints(), 200),
+
+            // Europe PMC
+            'www.ebi.ac.uk/*' => Http::response($this->cannedEuropePmc(), 200),
+
             // Gemini AI
             'generativelanguage.googleapis.com/*' => Http::response([
                 'candidates' => [[
@@ -95,6 +101,41 @@ class AppServiceProvider extends ServiceProvider
             ];
         }
         return $items;
+    }
+
+    private function cannedOsfPreprints(): array
+    {
+        $data = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $data[] = [
+                'id'         => "osf-mock-{$i}",
+                'type'       => 'preprints',
+                'attributes' => [
+                    'title'       => "Mock OSF Preprint {$i}: Advances in Social & Behavioral Research",
+                    'description' => "This is a mock abstract for OSF preprint {$i}. It examines emerging trends in social and behavioral science methodology.",
+                    'doi'         => "10.31234/osf.io/mock{$i}",
+                ],
+                'links' => [
+                    'html' => "https://osf.io/preprints/mock/mock{$i}",
+                ],
+            ];
+        }
+        return ['data' => $data];
+    }
+
+    private function cannedEuropePmc(): array
+    {
+        $results = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $results[] = [
+                'id'            => "PPR:PPR0000{$i}",
+                'source'        => 'PPR',
+                'title'         => "Mock Europe PMC Preprint {$i}: Novel Findings in Biomedical Research",
+                'abstractText'  => "This is a mock abstract for Europe PMC preprint {$i}. It presents novel findings relevant to biomedical and life science research.",
+                'doi'           => "10.1101/2025.01.mock{$i}",
+            ];
+        }
+        return ['resultList' => ['result' => $results]];
     }
 
     private function cannedGeminiSummaries(int $count): array
