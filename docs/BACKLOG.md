@@ -24,29 +24,7 @@ _No items._
 
 ## High
 
-### RDIG-003: Stream digest generation with progressive UI
-
-#### Description
-
-Digest generation currently runs synchronously inside the `DigestViewer` Livewire component with a 120-second timeout. This blocks the browser for the full duration and provides no progress feedback beyond a spinner. The original plan was to dispatch generation to a queued job, but that introduces unnecessary infrastructure (queue driver, workers, polling) for a local single-user app.
-
-**Revised approach:** Use Livewire 3's `$this->stream()` to push partial results to the browser as each source/discipline completes. The generation remains synchronous on the server but the UI renders progressively — results appear section-by-section instead of all-at-once after a long wait. No queue, no workers, no polling. The source fetch cache (RDIG-002) already makes repeated generations fast; streaming addresses the UX of cold first-run generations.
-
-#### Acceptance Criteria
-
-- [ ] Digest results stream to the UI progressively as each discipline/source completes
-- [ ] User sees which source is currently being processed
-- [ ] Full digest is available in session after generation completes (existing behavior preserved)
-- [ ] Existing tests still pass
-- [ ] No queue infrastructure required
-
-#### Metadata
-
-- **Status:** Planned
-- **Priority:** High
-- **Type:** Feature
-- **Assignee:** Unassigned
-- **GitHub Issue:** No
+_No items._
 
 ---
 
@@ -72,26 +50,7 @@ Discipline and source selections are currently stored in the session only, which
 
 ## Low
 
-### RDIG-008: Paper deduplication across sources
-
-#### Description
-
-A paper appearing in multiple arXiv subfields (e.g., cross-listed in `math.PR` and `math.ST`) will show up multiple times in the generated digest, each with its own AI summary. This wastes AI summarization budget and clutters the output. Deduplication should happen after fetching and before summarization, keyed on URL or arXiv ID. Duplicates should be collapsed into a single item with a note about which sources it appeared in.
-
-#### Acceptance Criteria
-
-- [ ] Papers with identical URLs or arXiv IDs are deduplicated before AI summarization
-- [ ] Deduplicated items retain a reference to all sources they appeared in
-- [ ] AI summarization cost is reduced proportionally to duplicates removed
-- [ ] Digest display indicates when a paper appeared in multiple sources
-
-#### Metadata
-
-- **Status:** Planned
-- **Priority:** Low
-- **Type:** Feature
-- **Assignee:** Unassigned
-- **GitHub Issue:** No
+_No items._
 
 ---
 
@@ -114,6 +73,53 @@ _No items._
 ---
 
 ## Done
+
+### RDIG-003: Stream digest generation with progressive UI
+
+#### Description
+
+Replaced the static loading spinner with Livewire 3's `$this->stream()` for progressive digest rendering. During generation, a status bar shows real-time updates ("Fetching arXiv — Mathematics…", "Summarizing arXiv — Mathematics…") and completed discipline sections appear immediately as they finish rather than waiting for the entire digest. Originally scoped as a queued job (RDIG-003 v1) but revised to streaming — no queue infrastructure needed for a local single-user app. Discipline section markup extracted into a reusable blade partial (`livewire/partials/digest-section.blade.php`). All 27 existing tests pass. Committed as `456aa49`.
+
+#### Acceptance Criteria
+
+- [x] Digest results stream to the UI progressively as each discipline/source completes
+- [x] User sees which source is currently being processed
+- [x] Full digest is available in session after generation completes (existing behavior preserved)
+- [x] Existing tests still pass
+- [x] No queue infrastructure required
+
+#### Metadata
+
+- **Status:** Done
+- **Priority:** High
+- **Type:** Feature
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
+
+### RDIG-008: Paper deduplication across sources
+
+#### Description
+
+Added per-discipline paper deduplication between fetch and summarize stages. Papers cross-listed in multiple arXiv subfields (e.g., `math.PR` and `math.ST`) now appear only once in the digest — under the first source that returned them. The first occurrence is annotated with `also_in` (a list of other source labels that had the same paper), displayed as small gray pill badges in the UI. New stateless `PaperDeduplicator` service with URL normalization (lowercase, http→https, trailing slash strip, arXiv version suffix strip). 25 unit tests covering normalizeUrl (null returns, transformations) and dedup (fast paths, core behavior, edge cases). DigestViewer refactored from sequential fetch-and-summarize to three-pass fetch-dedup-summarize loop. Sources fully emptied by dedup are skipped entirely, saving AI summarization budget.
+
+#### Acceptance Criteria
+
+- [x] Papers with identical URLs or arXiv IDs are deduplicated before AI summarization
+- [x] Deduplicated items retain a reference to all sources they appeared in (`also_in` key)
+- [x] AI summarization cost is reduced proportionally to duplicates removed
+- [x] Digest display indicates when a paper appeared in multiple sources (gray pill badges)
+
+#### Metadata
+
+- **Status:** Done
+- **Priority:** Low
+- **Type:** Feature
+- **Assignee:** Unassigned
+- **GitHub Issue:** No
+
+---
 
 ### RDIG-002: Cache source fetch results
 

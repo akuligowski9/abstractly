@@ -383,3 +383,75 @@ Revised RDIG-003 from "move digest generation to a queued job" to "stream digest
 - Implement RDIG-003 (Livewire streaming)
 - Remaining backlog: RDIG-008 (dedup)
 - Law and Arts disciplines still need sources
+
+---
+
+## 2026-02-12 — Paper Deduplication Across Sources (RDIG-008)
+
+### Summary
+
+Added per-discipline paper deduplication between the fetch and summarize stages of digest generation. Cross-listed papers (e.g., appearing in both `math.PR` and `math.ST`) now appear only once — under the first source that returned them — with small gray pill badges indicating other sources that also had the paper. This saves AI summarization budget and reduces digest clutter.
+
+### What was done
+
+- **New file: `app/Services/PaperDeduplicator.php`** — Stateless service with two public methods:
+  - `dedup(array $fetchedBySource): array` — Removes duplicates from later sources, annotates first occurrences with `also_in` (list of other source labels). Fast-paths for 0–1 sources. Items with non-dedupable URLs (`#`, empty) always kept.
+  - `normalizeUrl(string $url): ?string` — Lowercases, upgrades http→https, strips trailing slash, strips arXiv version suffix (`v1`, `v3`, etc.). Returns null for `#`, empty, whitespace. Does not affect DOI or other non-arXiv URLs.
+- **New file: `tests/Unit/PaperDeduplicatorTest.php`** — 25 test cases across 5 groups:
+  - `normalizeUrl` null returns (3): `#`, empty, whitespace
+  - `normalizeUrl` transformations (7): lowercase, http→https, trailing slash, arXiv version strip (v1, vN), non-arXiv preservation, DOI preservation
+  - `dedup` fast paths (2): empty input, single source
+  - `dedup` core behavior (5): single dupe removed, also_in annotation, multi-source dupe, mixed unique/dupe, no also_in on unique items
+  - `dedup` edge cases (8): `#` URLs kept, http/https normalization, arXiv version normalization, fully-emptied source, DOI dedup, empty URL items, source order preservation, also_in survives `+` merge operator
+- **Modified: `app/Livewire/DigestViewer.php`** — Refactored inner loop from sequential fetch+summarize to three-pass:
+  1. Fetch all sources for the discipline into `$fetchedBySource`
+  2. Run `PaperDeduplicator::dedup()` to remove cross-source duplicates
+  3. Summarize only unique items per source (sources emptied by dedup are skipped)
+- **Modified: `resources/views/livewire/partials/digest-section.blade.php`** — Added `also_in` badge display between the paper title link and the summary paragraph. Small gray pill badges with metadata styling.
+- **Updated documentation:** BACKLOG.md (RDIG-008 moved to Done), PROGRESS.md (this entry)
+
+### Decisions made
+
+- **Dedup per-discipline only** — Cross-discipline duplication (e.g., `arxiv_qbio_NC` in both Neuroscience and Psychology) is intentional and left alone
+- **First occurrence wins** — The paper stays in whichever source appears first in the config ordering; later sources lose their copy
+- **`also_in` is additive** — The key survives through `AiSummarizer::mergeBatchSummaries()` because PHP's `+` operator gives left-side precedence, so existing keys on the item are preserved
+- **Stateless service** — `PaperDeduplicator` has no dependencies; injected via Livewire method injection like `SourcePreviewer` and `AiSummarizer`
+
+### What's next
+
+- Implement RDIG-003 (Livewire streaming)
+- Law and Arts disciplines still need sources
+
+---
+
+## 2026-02-12 — Streaming Digest Generation (RDIG-003)
+
+### Summary
+
+Replaced the static loading spinner with Livewire 3 streaming. Digest sections now render progressively as each discipline completes, and a real-time status bar shows which source is being fetched or summarized. No queue infrastructure — the generation remains synchronous on the server, but the UI updates incrementally via `$this->stream()`.
+
+### What was done
+
+- **New file: `resources/views/livewire/partials/digest-section.blade.php`** — Extracted discipline section markup into a reusable partial. Used for both streaming (rendered to HTML via `view()->render()`) and the final Livewire re-render (via `@include`).
+- **Modified: `resources/views/livewire/digest-viewer.blade.php`** — Replaced the static loading overlay with two `wire:loading` areas:
+  - Progress status bar with `wire:stream="progress-status"` (replaces text in-place)
+  - Streamed results container with `wire:stream="digest-stream"` (appends discipline sections)
+  - Final content area (`wire:loading.remove`) uses `@include` of the partial for the post-action render
+- **Modified: `app/Livewire/DigestViewer.php`** — Added `$this->stream()` calls in `generate()`:
+  - Before each source fetch: `"Fetching {source label}…"` → `progress-status` (replace)
+  - Before each AI summarization: `"Summarizing {source label}…"` → `progress-status` (replace)
+  - After each discipline completes: rendered section HTML → `digest-stream` (append)
+- **Documentation:** BACKLOG.md (RDIG-003 moved to Done), PROGRESS.md (this entry)
+- Committed as `456aa49`
+
+### Decisions made
+
+- **Streaming over queuing** — `$this->stream()` achieves the same progressive UX without queue drivers, workers, or polling. Appropriate for a local single-user app.
+- **`wire:loading` structure preserved** — During the action, `wire:loading` divs show the progress bar + streamed results. After the action, `wire:loading.remove` shows the final rendered digest. Content is identical, so the swap is seamless.
+- **Blade partial extraction** — Single source of truth for discipline section markup, avoiding duplication between streamed HTML and the final Livewire render.
+
+### What's next
+
+- All formal backlog items are complete
+- Law and Arts disciplines still need sources
+- Parking lot ideas available for future work

@@ -14,6 +14,15 @@
                                 {{ $it['title'] }}
                             </a>
 
+                            @if (!empty($it['also_in']))
+                                <p class="text-xs text-gray-400 mt-0.5">
+                                    Also in:
+                                    @foreach ($it['also_in'] as $src)
+                                        <span class="inline-flex items-center rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600">{{ $src }}</span>{{ !$loop->last ? ' ' : '' }}
+                                    @endforeach
+                                </p>
+                            @endif
+
                             @if (!empty($it['summary']))
                                 <p class="text-xs text-gray-500 mt-1 line-clamp-3">{{ $it['summary'] }}</p>
                             @endif

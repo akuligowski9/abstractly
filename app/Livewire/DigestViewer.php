@@ -7,6 +7,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
 use App\Services\SourcePreviewer;
 use App\Services\AiSummarizer;
+use App\Services\PaperDeduplicator;
 use Illuminate\Support\Facades\Storage;
 
 #[Layout('components.layouts.app')]
@@ -25,7 +26,7 @@ class DigestViewer extends Component
         $this->digest = session('digest.latest', []);
     }
 
-    public function generate(SourcePreviewer $previewer, AiSummarizer $ai): void
+    public function generate(SourcePreviewer $previewer, AiSummarizer $ai, PaperDeduplicator $deduplicator): void
     {
         $this->generating = true;
 
@@ -58,7 +59,8 @@ class DigestViewer extends Component
                 continue;
             }
 
-            $sections = [];
+            // Pass 1: Fetch all sources for this discipline.
+            $fetchedBySource = [];
             foreach ($sourcesForSlug as $src) {
                 $this->stream('progress-status', "Fetching {$src['label']}…", true);
 
@@ -67,6 +69,20 @@ class DigestViewer extends Component
                 } catch (\Throwable $e) {
                     $items = [];
                 }
+
+                if (! empty($items)) {
+                    $fetchedBySource[$src['label']] = $items;
+                }
+            }
+
+            // Pass 2: Deduplicate across sources within this discipline.
+            $this->stream('progress-status', "Deduplicating {$discLabel}…", true);
+            $dedupedBySource = $deduplicator->dedup($fetchedBySource);
+
+            // Pass 3: Summarize unique items per source (original order).
+            $sections = [];
+            foreach ($sourcesForSlug as $src) {
+                $items = $dedupedBySource[$src['label']] ?? [];
                 if (empty($items)) {
                     continue;
                 }
