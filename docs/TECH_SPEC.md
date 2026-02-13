@@ -192,7 +192,8 @@ Laravel 12 (PHP 8.2+) + Livewire 3
 ├── Livewire Components (primary UI layer)
 │     ├── DisciplinePicker        (enable/disable disciplines)
 │     ├── SourcePicker            (enable/disable sources per discipline)
-│     └── DigestViewer            (generate + display digest)
+│     ├── DigestViewer            (generate + display digest)
+│     └── SavedPapers             (view + manage bookmarked papers)
 │
 ├── Controllers
 │     └── SourceController        (preview a single source — only active controller)
@@ -200,7 +201,8 @@ Laravel 12 (PHP 8.2+) + Livewire 3
 ├── Services
 │     ├── SourcePreviewer         (fetch + normalize feed data)
 │     ├── AiSummarizer           (multi-provider AI summaries)
-│     └── PaperDeduplicator      (per-discipline URL-based dedup)
+│     ├── PaperDeduplicator      (per-discipline URL-based dedup)
+│     └── SavedPapersRepository  (JSON file-backed paper bookmarks)
 │
 ├── Console Commands
 │     └── ClearSourceCache       (artisan source:clear-cache)
@@ -236,6 +238,7 @@ GET /disciplines               → DisciplinePicker::class
 GET /disciplines/{slug}        → SourcePicker::class
 GET /disciplines/{slug}/sources/{key}/preview → SourceController@preview
 GET /digest                    → DigestViewer::class
+GET /saved                     → SavedPapers::class
 ```
 
 Livewire `wire:navigate` is used on internal links for SPA-like page transitions without full reloads.
@@ -246,9 +249,9 @@ Livewire `wire:navigate` is used on internal links for SPA-like page transitions
 
 ### Current: Config + Session + File Export (No Database)
 
-- **No database** — all Laravel framework drivers use file-based or sync alternatives
+- **No database** — all Laravel framework drivers use file-based, in-memory, or sync alternatives
   - Session driver: `file` (stored in `storage/framework/sessions/`)
-  - Cache driver: `file` (stored in `storage/framework/cache/`)
+  - Cache driver: `array` (in-memory, per-request — no persistent cache between requests)
   - Queue driver: `sync` (jobs run inline, no worker process)
 - Disciplines and sources are config-driven (`config/disciplines.php`, `config/sources.php`)
 - User selections stored in session (`enabled_disciplines`, `enabled_sources.{slug}`)
@@ -294,7 +297,7 @@ Provider selection via `config('ai.provider')` (backed by `DIGEST_AI_PROVIDER` e
 
 | Provider | Model | Batch Size | Timeout |
 |----------|-------|------------|---------|
-| `gemini` (default) | `gemini-2.0-flash` | 5 | 40s |
+| `gemini` (default) | `gemini-2.5-flash` | 5 | 40s |
 | `openai` | `gpt-4o-mini` | 5 | 40s |
 | `ollama` | `llama3.1` | 3 | 60s |
 
@@ -349,9 +352,9 @@ Graceful degradation: placeholder text on failure per batch.
 - **Directory:** `tests/Unit/`, `tests/Feature/`
 - **Runner:** PHPUnit 11 (`phpunit.xml`)
 - **Run command:** `composer test` (clears config cache, runs `php artisan test`)
-- **Environment:** In-memory SQLite, array session/cache, sync queue
+- **Environment:** No database, array session/cache, sync queue
 
-**Unit test coverage (63 test cases across 5 files):**
+**Unit test coverage (84 test cases across 6 files):**
 
 | Test File | Cases | Coverage |
 |-----------|-------|----------|
@@ -359,6 +362,7 @@ Graceful degradation: placeholder text on failure per batch.
 | `AiSummarizerTest` | 14 | Gemini/OpenAI/Ollama happy paths, missing API keys, API failures, batch splitting, unknown provider fallback, missing index placeholder, summary cache hit/miss/bypass/TTL kill switch/hash URL exclusion |
 | `PaperDeduplicatorTest` | 25 | normalizeUrl (null returns for #/empty/whitespace, transformations: lowercase, http→https, trailing slash, arXiv version strip, non-arXiv/DOI preservation), dedup fast paths (empty input, single source), core behavior (single/multi-source dupe, mixed unique/dupe, also_in annotation, no also_in on unique), edge cases (#/empty URLs, http/https normalization, arXiv version normalization, fully-emptied source, DOI dedup, source order preservation, also_in survives + merge) |
 | `ConfigIntegrityTest` | 7 | Unique source keys, required fields, non-empty URLs, at least one discipline per source, valid discipline references, discipline labels, discipline ready flags |
+| `SavedPapersRepositoryTest` | 20 | Save/remove/clear, dedup by URL, ordering, savedUrls, export JSON envelope, corruption recovery |
 | `ExampleTest` | 1 | Basic assertion |
 
 All tests use `Http::fake()` — no real external requests. `composer test` clears config cache and runs the full suite.
@@ -425,7 +429,7 @@ Not yet established. E2E tests cover the primary user workflow end-to-end (disci
 ### Phase 4 — Abstractly Vision
 
 - Research radar view
-- Saved papers
+- ~~Saved papers~~ → **Done:** RDIG-019 (bookmark from digest, `/saved` page, JSON file persistence)
 - Personal trend tracking
 - Research-to-experiment mapping
 - Integration with The Shelf (project pipeline)

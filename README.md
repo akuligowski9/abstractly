@@ -2,10 +2,6 @@
 
 A research radar for tracking scientific trends and translating emerging techniques into practical applications. Aggregates newly published research from open-access sources across 15 disciplines and generates AI-assisted digests with multiple perspectives.
 
-> **Status:** Active development (v0.1)
-
----
-
 ## Demo
 
 ![Digest example — Mathematics / Number Theory with ELI5, Solo SWE, and Investor summaries](docs/images/digest-example.png)
@@ -30,14 +26,16 @@ A research radar for tracking scientific trends and translating emerging techniq
 - **AI summary caching** — cached per paper URL to avoid re-summarization on repeat generations
 - **Rate limiting** — configurable inter-batch delay with 429 retry and exponential backoff
 - **JSON export** — download digest as self-describing JSON with metadata envelope (timestamp, disciplines, sources, format version)
-- **Error visibility** — amber warning banner listing any sources that failed during generation
+- **Saved papers** — bookmark papers from the digest, view on dedicated `/saved` page, persisted to local JSON file across sessions
+- **Visual progress bar** — animated bar with source counter during digest generation
+- **Error visibility** — amber warning banner listing failed sources, with specific messaging for API rate limits
 - **Session lifetime warnings** — help text on picker pages indicating session-based persistence
 - Multi-provider AI support (Gemini, OpenAI, Ollama) with graceful degradation on failure
 
 ### Planned
 
 - Research radar view with trend tracking
-- Saved papers and personal trend tracking
+- Personal trend tracking
 - Ranking by novelty or citations
 - Cross-discipline clustering
 - Integration with [The Shelf](https://github.com/akuligowski9/the-shelf) for research-to-project pipeline
@@ -75,7 +73,7 @@ npm run build
 composer dev
 ```
 
-This runs the Laravel server, queue listener, log tail, and Vite dev server concurrently.
+This runs the Laravel server, log tail, and Vite dev server concurrently.
 
 ---
 
@@ -87,7 +85,7 @@ Copy `.env.example` to `.env` and configure:
 |----------|----------|-------------|
 | `GOOGLE_API_KEY` | Yes (if using Gemini) | Google AI API key for Gemini |
 | `DIGEST_AI_PROVIDER` | No | `gemini` (default), `openai`, or `ollama` |
-| `DIGEST_AI_MODEL` | No | Gemini model (default: `gemini-2.0-flash`) |
+| `DIGEST_AI_MODEL` | No | Gemini model (default: `gemini-2.5-flash`) |
 | `OPENAI_API_KEY` | Only if provider is `openai` | OpenAI API key |
 | `DIGEST_AI_MODEL_OPENAI` | No | OpenAI model (default: `gpt-4o-mini`) |
 | `OLLAMA_HOST` | No | Ollama endpoint (default: `http://127.0.0.1:11434`) |
