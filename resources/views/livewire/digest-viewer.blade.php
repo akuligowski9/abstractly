@@ -64,6 +64,10 @@
                 </svg>
                 <p wire:stream="progress-status" class="text-sm text-gray-700 font-medium">Starting generation&hellip;</p>
             </div>
+            <div class="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div wire:stream="progress-bar" class="h-full bg-indigo-600 rounded-full" style="width: 0%"></div>
+            </div>
+            <p wire:stream="progress-count" class="mt-1.5 text-xs text-gray-400">Preparing&hellip;</p>
         </div>
     </div>
 
@@ -86,7 +90,13 @@
                         </p>
                         <ul class="mt-1 text-sm text-amber-700 list-disc list-inside">
                             @foreach ($failures as $f)
-                                <li>{{ $f['source'] }} ({{ $f['type'] === 'fetch' ? 'fetch failed' : 'summarization failed' }})</li>
+                                @if ($f['type'] === 'rate_limit')
+                                    <li>{{ $f['source'] }} — daily free tier limit reached, try again tomorrow</li>
+                                @elseif ($f['type'] === 'fetch')
+                                    <li>{{ $f['source'] }} (fetch failed)</li>
+                                @else
+                                    <li>{{ $f['source'] }} (summarization failed)</li>
+                                @endif
                             @endforeach
                         </ul>
                     </div>
@@ -114,7 +124,7 @@
         @else
             {{-- Digest content --}}
             @foreach ($digest as $d)
-                @include('livewire.partials.digest-section', ['d' => $d])
+                @include('livewire.partials.digest-section', ['d' => $d, 'savedUrls' => $savedUrls])
             @endforeach
         @endif
     </div>

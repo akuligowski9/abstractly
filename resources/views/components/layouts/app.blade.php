@@ -1,3 +1,4 @@
+@inject('savedPapers', 'App\Services\SavedPapersRepository')
 <!doctype html>
 <html lang="en" class="h-full">
 <head>
@@ -23,6 +24,13 @@
                         <a href="{{ route('digest.show') }}" wire:navigate
                            class="{{ request()->routeIs('digest.*') ? 'text-indigo-600' : 'text-gray-600 hover:text-gray-900' }}">
                             Digest
+                        </a>
+                        <a href="{{ route('saved.index') }}" wire:navigate
+                           class="flex items-center gap-1.5 {{ request()->routeIs('saved.*') ? 'text-indigo-600' : 'text-gray-600 hover:text-gray-900' }}">
+                            Saved
+                            @if ($savedPapers->count() > 0)
+                                <span class="inline-flex items-center justify-center rounded-full bg-amber-100 text-amber-700 text-xs font-semibold min-w-[1.25rem] h-5 px-1.5">{{ $savedPapers->count() }}</span>
+                            @endif
                         </a>
                     </div>
                 </div>

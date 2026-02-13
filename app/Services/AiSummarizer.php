@@ -130,6 +130,11 @@ class AiSummarizer
                     'status' => $resp->status(),
                     'body'   => mb_substr($resp->body(), 0, 800),
                 ]);
+
+                if ($resp->status() === 429) {
+                    throw new \RuntimeException('Gemini free tier daily limit reached — try again tomorrow.');
+                }
+
                 $out = array_merge($out, $this->placeholderPerItem($batch, 'Gemini request failed for this batch.'));
                 continue;
             }

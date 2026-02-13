@@ -9,10 +9,34 @@
                 <div class="space-y-4">
                     @foreach ($sec['items'] as $it)
                         <div class="rounded-lg border border-gray-100 bg-gray-50/50 p-4">
-                            <a href="{{ $it['url'] }}" target="_blank" rel="noopener"
-                               class="font-medium text-indigo-600 hover:text-indigo-800 transition">
-                                {{ $it['title'] }}
-                            </a>
+                            <div class="flex items-start gap-2">
+                                <a href="{{ $it['url'] }}" target="_blank" rel="noopener"
+                                   class="font-medium text-indigo-600 hover:text-indigo-800 transition flex-1">
+                                    {{ $it['title'] }}
+                                </a>
+                                @if (isset($savedUrls))
+                                    <button wire:click="toggleSave({{ @js($it['url']) }})"
+                                            title="{{ in_array($it['url'], $savedUrls) ? 'Remove from saved' : 'Save paper' }}"
+                                            class="shrink-0 p-1 rounded hover:bg-gray-200 transition"
+                                            aria-label="{{ in_array($it['url'], $savedUrls) ? 'Remove from saved' : 'Save paper' }}">
+                                        @if (in_array($it['url'], $savedUrls))
+                                            <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M5 2h14a1 1 0 011 1v19.143a.5.5 0 01-.766.424L12 18.03l-7.234 4.536A.5.5 0 014 22.143V3a1 1 0 011-1z"/>
+                                            </svg>
+                                        @else
+                                            <svg class="w-5 h-5 text-gray-400 hover:text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/>
+                                            </svg>
+                                        @endif
+                                    </button>
+                                @else
+                                    <span class="shrink-0 p-1">
+                                        <svg class="w-5 h-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/>
+                                        </svg>
+                                    </span>
+                                @endif
+                            </div>
 
                             @if (!empty($it['also_in']))
                                 <p class="text-xs text-gray-400 mt-0.5">
