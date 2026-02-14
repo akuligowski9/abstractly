@@ -113,7 +113,7 @@
                             </div>
                         </div>
 
-                        <button wire:click="removePaper({{ @js($paper['url']) }})"
+                        <button wire:click="removePaper(@js($paper['url']))"
                                 title="Remove from saved"
                                 class="shrink-0 p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition"
                                 aria-label="Remove paper">
