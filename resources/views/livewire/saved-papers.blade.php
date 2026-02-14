@@ -58,56 +58,56 @@
         {{-- Paper cards --}}
         <div class="space-y-4">
             @foreach ($papers as $paper)
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-5">
                     <div class="flex items-start gap-3">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
                                 <a href="{{ $paper['url'] }}" target="_blank" rel="noopener"
-                                   class="font-medium text-indigo-600 hover:text-indigo-800 transition">
+                                   class="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition">
                                     {{ $paper['title'] }}
                                 </a>
-                                <span class="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                                <span class="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-900/40 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300">
                                     {{ $paper['discipline'] }}
                                 </span>
-                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                                <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-300">
                                     {{ $paper['source'] }}
                                 </span>
                             </div>
 
                             @if (!empty($paper['saved_at']))
-                                <p class="text-xs text-gray-400 mt-0.5">
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                                     Saved {{ \Carbon\Carbon::parse($paper['saved_at'])->diffForHumans() }}
                                 </p>
                             @endif
 
                             @if (!empty($paper['also_in']))
-                                <p class="text-xs text-gray-400 mt-0.5">
+                                <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                                     Also in:
                                     @foreach ($paper['also_in'] as $src)
-                                        <span class="inline-flex items-center rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-600">{{ $src }}</span>{{ !$loop->last ? ' ' : '' }}
+                                        <span class="inline-flex items-center rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">{{ $src }}</span>{{ !$loop->last ? ' ' : '' }}
                                     @endforeach
                                 </p>
                             @endif
 
                             <div class="mt-3 space-y-2">
                                 @if (!empty($paper['eli5']))
-                                    <div class="border-l-4 border-green-400 pl-3 py-1">
-                                        <div class="text-xs font-semibold text-green-700 uppercase tracking-wide mb-0.5">ELI5</div>
-                                        <p class="text-sm text-gray-700">{{ $paper['eli5'] }}</p>
+                                    <div class="border-l-4 border-green-400 dark:border-green-600 pl-3 py-1">
+                                        <div class="text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide mb-0.5">ELI5</div>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $paper['eli5'] }}</p>
                                     </div>
                                 @endif
 
                                 @if (!empty($paper['swe']))
-                                    <div class="border-l-4 border-blue-400 pl-3 py-1">
-                                        <div class="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-0.5">Solo SWE</div>
-                                        <p class="text-sm text-gray-700">{{ $paper['swe'] }}</p>
+                                    <div class="border-l-4 border-blue-400 dark:border-blue-600 pl-3 py-1">
+                                        <div class="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide mb-0.5">Solo SWE</div>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $paper['swe'] }}</p>
                                     </div>
                                 @endif
 
                                 @if (!empty($paper['investor']))
-                                    <div class="border-l-4 border-amber-400 pl-3 py-1">
-                                        <div class="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-0.5">Investor</div>
-                                        <p class="text-sm text-gray-700">{{ $paper['investor'] }}</p>
+                                    <div class="border-l-4 border-amber-400 dark:border-amber-600 pl-3 py-1">
+                                        <div class="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide mb-0.5">Investor</div>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $paper['investor'] }}</p>
                                     </div>
                                 @endif
                             </div>
@@ -115,7 +115,7 @@
 
                         <button wire:click="removePaper({{ @js($paper['url']) }})"
                                 title="Remove from saved"
-                                class="shrink-0 p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition"
+                                class="shrink-0 p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/40 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition"
                                 aria-label="Remove paper">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
