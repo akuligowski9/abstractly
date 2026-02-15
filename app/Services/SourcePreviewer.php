@@ -58,7 +58,7 @@ class SourcePreviewer
                 'Accept-Language' => 'en-US,en;q=0.9',
             ])
             ->retry(2, 250)
-            ->timeout(20);
+            ->timeout(45);
     }
 
     /** arXiv Atom */
