@@ -289,7 +289,7 @@ Normalized output per item:
 ]
 ```
 
-HTTP client: browser-like headers, 2 retries, 20s timeout.
+HTTP client: browser-like headers, 2 retries, 45s timeout.
 
 ### AI Summarization (`AiSummarizer`)
 

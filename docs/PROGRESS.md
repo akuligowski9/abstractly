@@ -612,3 +612,43 @@ Added Docker support for zero-friction local development, addressing GitHub issu
 ### What's next
 
 - Parking lot ideas available for future work
+
+---
+
+## 2026-02-14 — arXiv Fetch Fix + Nav Layout Update
+
+### Summary
+
+Fixed a bug where all arXiv source fetches failed due to an HTTP-to-HTTPS redirect, and moved navigation links to the right side of the top bar for better visual hierarchy.
+
+### What was done
+
+- **Bug fix — arXiv 301 redirect:**
+  - All arXiv URLs in `config/sources.php` used `http://export.arxiv.org/...` but arXiv now enforces HTTPS, returning a 301 redirect
+  - Laravel's HTTP client does not follow redirects by default, so `!$res->ok()` treated the 301 as a failure, throwing `RuntimeException`
+  - **Fix:** Updated all 40 arXiv URLs from `http://` to `https://` in `config/sources.php`
+  - **Additional:** Bumped `SourcePreviewer` HTTP client timeout from 20s to 45s — arXiv API response times observed at 30+ seconds under normal load
+  - Updated TECH_SPEC.md to reflect new timeout value
+
+- **UX — Navigation layout:**
+  - Moved Disciplines, Digest, and Saved links from the left side (grouped with logo) to the right side of the top navigation bar
+  - Logo remains on the left; existing `justify-between` flex container handles the spacing
+  - Modified `resources/views/components/layouts/app.blade.php`
+
+### Files changed
+
+| File | Change |
+|------|--------|
+| `config/sources.php` | All arXiv URLs: `http://` → `https://` |
+| `app/Services/SourcePreviewer.php` | Timeout: 20s → 45s |
+| `resources/views/components/layouts/app.blade.php` | Nav links moved to right side |
+| `docs/TECH_SPEC.md` | HTTP client timeout updated to 45s |
+
+### Decisions made
+
+- **URL fix over redirect-following** — Updating the URLs is cleaner than adding redirect-following behavior to the HTTP client. The root cause was stale URLs, not a missing feature.
+- **45s timeout** — arXiv observed at 30+ seconds for single-result queries. 45s gives headroom without being excessively long. The per-request `set_time_limit(120)` in DigestViewer still governs the overall generation timeout.
+
+### What's next
+
+- Parking lot ideas available for future work
