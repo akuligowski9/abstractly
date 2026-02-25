@@ -4,6 +4,8 @@
 
 A research radar for tracking scientific trends and translating emerging techniques into practical applications. Aggregates newly published research from open-access sources across 15 disciplines and generates AI-assisted digests with multiple perspectives.
 
+![Abstractly Demo](docs/images/demo.gif)
+
 ![Digest example — Mathematics / Number Theory with ELI5, Solo SWE, and Investor summaries](docs/images/digest-example.png)
 
 ---
