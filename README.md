@@ -1,5 +1,7 @@
 # Abstractly
 
+[![CodeRabbit Reviews](https://img.shields.io/coderabbit/prs/github/akuligowski9/abstractly?labelColor=171717&color=FF570A&label=CodeRabbit+Reviews)](https://coderabbit.ai)
+
 A research radar for tracking scientific trends and translating emerging techniques into practical applications. Aggregates newly published research from open-access sources across 15 disciplines and generates AI-assisted digests with multiple perspectives.
 
 ![Digest example — Mathematics / Number Theory with ELI5, Solo SWE, and Investor summaries](docs/images/digest-example.png)
